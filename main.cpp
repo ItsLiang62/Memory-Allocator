@@ -13,6 +13,8 @@ class Arena {
 
 	public:
 		// prevent implicit constructor calls such as Arena arena = 1024
+		// can cause hidden bugs or performance hits
+		// good practice
 		explicit Arena(std::size_t size_) : size(size_) {
 			buffer = new std::byte[size_]; // array of bytes on heap
 		}
@@ -49,6 +51,21 @@ class Arena {
 		void reset() noexcept {
 			offset = 0; // allow allocation from beginning of arena
 		}
+};
+
+template <typename T>
+class ArenaAllocator {
+	private:
+		Arena* arena;
+
+	public:
+		template <typename U>
+		// conditional compile time constructor
+		// allow construct different type allocator using arena of existing allocator
+		constexpr ArenaAllocator(const ArenaAllocator<U>& other) noexcept 
+		: arena(other.arena) {}
+
+		explicit ArenaAllocator(Arena& arena) noexcept : arena(arena) {}
 };
 
 int main() {
