@@ -66,7 +66,7 @@ class ArenaAllocator {
 		// allow construct using arena of existing allocator of any type
 		// mandatory for node-based standard containers' allocator
 		// since they convert element and allocator from type to Node<type>
-		constexpr ArenaAllocator(const ArenaAllocator<U>& other) noexcept 
+		ArenaAllocator(const ArenaAllocator<U>& other) noexcept 
 		: arena(other.arena) {}
 
 		explicit ArenaAllocator(Arena& arena_) noexcept : arena(&arena_) {}
@@ -78,7 +78,7 @@ class ArenaAllocator {
 			return static_cast<T*>(arena->allocate(n * sizeof(T), alignof(T)));
 		}
 
-		constexpr void deallocate(T* p, std::size_t n) noexcept {};
+		void deallocate(T* p, std::size_t n) noexcept {};
 
 		template <typename V>
 		// allow other allocators, regardless their class is template or regular
