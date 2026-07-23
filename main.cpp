@@ -61,11 +61,28 @@ class ArenaAllocator {
 	public:
 		template <typename U>
 		// conditional compile time constructor
-		// allow construct different type allocator using arena of existing allocator
+		// allow construct using arena of existing allocator of any type
 		constexpr ArenaAllocator(const ArenaAllocator<U>& other) noexcept 
 		: arena(other.arena) {}
 
-		explicit ArenaAllocator(Arena& arena) noexcept : arena(arena) {}
+		explicit ArenaAllocator(Arena& arena_) noexcept : arena(arena_) {}
+
+		// issue warning if return value ignored
+		[[nodiscard]] T* allocate(std::size_t n) {
+			if (n <= 0) return nullptr;
+			// main purpose, to allocate based on allocator type
+			return static_cast<T*>(arena->allocate(n * sizeof(T), alignof(T)));
+		}
+
+		template <typename V>
+		// allow other allocators, regardless their class is template or regular
+		// to access private members of this class
+		friend class ArenaAllocator;
+
+		// allow check equality based on arena pointer
+		bool operator==(const ArenaAllocator& other) const noexcept {
+			return arena == other.arena;
+		}
 };
 
 int main() {
