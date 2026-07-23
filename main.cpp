@@ -11,7 +11,7 @@ class Arena {
 	std::size_t size; // total capacity of arena
 	std::size_t offset = 0; // added to arena pointer to get pointer to remaining arena
 
-	public:
+	public:		
 		// prevent implicit constructor calls such as Arena arena = 1024
 		// can cause hidden bugs or performance hits
 		// good practice
@@ -59,13 +59,17 @@ class ArenaAllocator {
 		Arena* arena;
 
 	public:
+		using value_type = T;
+
 		template <typename U>
 		// conditional compile time constructor
 		// allow construct using arena of existing allocator of any type
+		// mandatory for node-based standard containers' allocator
+		// since they convert element and allocator from type to Node<type>
 		constexpr ArenaAllocator(const ArenaAllocator<U>& other) noexcept 
 		: arena(other.arena) {}
 
-		explicit ArenaAllocator(Arena& arena_) noexcept : arena(arena_) {}
+		explicit ArenaAllocator(Arena& arena_) noexcept : arena(&arena_) {}
 
 		// issue warning if return value ignored
 		[[nodiscard]] T* allocate(std::size_t n) {
@@ -73,6 +77,8 @@ class ArenaAllocator {
 			// main purpose, to allocate based on allocator type
 			return static_cast<T*>(arena->allocate(n * sizeof(T), alignof(T)));
 		}
+
+		constexpr void deallocate(T* p, std::size_t n) noexcept {};
 
 		template <typename V>
 		// allow other allocators, regardless their class is template or regular
@@ -86,5 +92,20 @@ class ArenaAllocator {
 };
 
 int main() {
+	Arena memory_pool(1024);
+	ArenaAllocator<int> allocator_int(memory_pool);
 
+	std::vector<int, ArenaAllocator<int>> vec(allocator_int);
+
+	for (int i=0; i<10; ++i) {
+		vec.push_back(i * 10);
+	}
+
+	for (int val : vec) {
+		std::cout << val << " ";
+	}
+	std::cout << "\n";
+
+	memory_pool.reset();
+	return 0;
 }
