@@ -15,9 +15,7 @@ class Arena {
 		// prevent implicit constructor calls such as Arena arena = 1024
 		// can cause hidden bugs or performance hits
 		// good practice
-		explicit Arena(std::size_t size_) : size(size_) {
-			buffer = new std::byte[size_]; // array of bytes on heap
-		}
+		explicit Arena(std::size_t size_) : size(size_), buffer(new std::byte[size_]) {}
 
 		~Arena() {
 			delete[] buffer;
